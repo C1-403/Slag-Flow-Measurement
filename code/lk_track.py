@@ -25,13 +25,13 @@ import math
 # from time import clock
 
 lk_params = dict(winSize=(15, 15),
-                 maxLevel=4,
+                 maxLevel=5,
                  criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
-feature_params = dict(maxCorners=500,
-                      qualityLevel=0.4,
-                      minDistance=10,
-                      blockSize=7)
+feature_params = dict(maxCorners=50,
+                      qualityLevel=0.6,
+                      minDistance=7,
+                      blockSize=5)
 
 kernel = np.array([[-1, -1, -1],
                    [-1, 9, -1],
@@ -67,12 +67,12 @@ def output_choose_vedio(coor, frame):
 
 
 video_name = "15.mp4"
-video_src = "./test_videos/" + video_name
+video_src = "../../code/test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
 coor_x, coor_y, emptyImage = -1, -1, 0  # 初始值并无意义,只是先定义一下供后面的global赋值改变用于全局变量
 coor = np.array([[1, 1]])
 
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用XVID编码器
-camera = cv2.VideoCapture(video_src)  # 从文件读取视频,Todo:只需要修改成自己的视频路径即可进行测试
+camera = cv2.VideoCapture(video_src)  # 从文件读取视频
 fps = camera.get(cv2.CAP_PROP_FPS)  # 获取视频帧率
 
 # 拿到第一帧图像
@@ -88,29 +88,37 @@ print("视频选中区域的宽：%d" % Width_choose, '\n'"视频选中区域的
 
 class App:
     def __init__(self, video_src):  # 构造方法，初始化一些参数和视频路径
-        self.track_len = 10
-        self.detect_interval = 1  # 过几帧检测一次角点
+        self.track_len = 2
+        self.detect_interval = 6  # 过几帧检测一次角点
         self.tracks = []
         self.cam = cv2.VideoCapture(video_src)
         self.frame_idx = 0
         self.d_sum = 0
         self.d_ave = 0
+        self.v = 0
+        self.v_sum = 0
+        self.iters = 120
 
     def run(self):  # 光流运行方法
         while True:
             ret, frame = self.cam.read()  # 读取视频帧
+
             if ret:
                 output = output_choose_vedio(coor, frame)
-                # output = cv2.fastNlMeansDenoisingColoredMulti(output, 2, 5, None, 4, 7, 35)
+                e1 = cv2.getTickCount()
+
                 cv2.rectangle(frame, tuple(coor[1, :]), tuple(coor[2, :]), (0, 255, 0), 1)  # 在原视频显示选定的框的范围
                 cv2.imshow('lwpCVWindow', frame)  # 显示采集到的视频流
                 frame_gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)  # 转化为灰度虚图像
-                frame_gray = cv2.medianBlur(frame_gray, 5)
+                # frame_gray = cv2.medianBlur(frame_gray, 5)
+                # frame_gray = cv2.bilateralFilter(frame_gray, 15, 75, 75)
+                frame_gray = cv2.GaussianBlur(frame_gray, (15, 15), 0)
                 frame_gray = cv2.filter2D(frame_gray, -1, kernel)
+                curr_time = self.cam.get(cv2.CAP_PROP_POS_MSEC)
                 cv2.imshow("gray", frame_gray)
                 vis = output.copy()
 
-                if len(self.tracks) > 0:  # 检测到角点后进行光流跟踪
+                if len(self.tracks) > 0:  # 检测到角点后进行光流跟踪n
                     img0, img1 = self.prev_gray, frame_gray
                     p0 = np.float32([tr[-1] for tr in self.tracks]).reshape(-1, 1, 2)
                     p1, st, err = cv2.calcOpticalFlowPyrLK(img0, img1, p0, None,
@@ -118,7 +126,6 @@ class App:
                     p0r, st, err = cv2.calcOpticalFlowPyrLK(img1, img0, p1, None,
                                                             **lk_params)  # 当前帧跟踪到的角点及图像和前一帧的图像作为输入来找到前一帧的角点位置
                     d = abs(p0 - p0r).reshape(-1, 2).max(-1)  # 得到角点回溯与前一帧实际角点的位置变化关系
-                    # dis = abs(p1 - p0).reshape(-1, 2).max(-1)
 
                     good = d < 1  # 判断d内的值是否小于1，大于1跟踪被认为是错误的跟踪点
                     new_tracks = []
@@ -133,8 +140,8 @@ class App:
                         cv2.circle(vis, (int(x), int(y)), 2, (0, 255, 0), -1)
                         # self.d_sum = self.d_sum + math.sqrt(math.pow(pre_x-x, 2) + math.pow(pre_y-y, 2))
                     self.tracks = new_tracks
-                    cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False,
-                                  (0, 255, 0))  # 以上一振角点为初始点，当前帧跟踪到的点为终点划线
+                    # cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False,
+                    #               (0, 255, 0))  # 以上一振角点为初始点，当前帧跟踪到的点为终点划线
                     if len(self.tracks) > 0:
                         self.d_ave = self.d_sum / len(self.tracks)
                     # print("d_ave:" + str(self.d_sum))
@@ -144,55 +151,82 @@ class App:
                             dis = math.sqrt(math.pow(pt[-1][0] - pt[-2][0], 2) + math.pow(pt[-1][1] - pt[-2][1], 2))
                             self.d_sum = self.d_sum + dis
                         self.d_ave = self.d_sum / len(self.tracks)
+                    self.v = self.d_ave / (curr_time - self.prev_time)
+                    self.v_sum += self.v
                     # print(self.tracks)
-                    print(self.d_ave)
-                    # draw_str(vis, (20, 20), 'track count: %d' % len(self.tracks))
+                    # print(self.d_ave)
+                    # print(self.v)
+                    # print(self.frame_idx)
 
-                if self.frame_idx % self.detect_interval == 0:  # 每5帧检测一次特征点
+                if self.frame_idx % self.detect_interval == 0:  # 每几帧检测一次特征点
                     mask = np.zeros_like(frame_gray)  # 初始化和视频大小相同的图像
                     mask[:] = 255  # 将mask赋值255也就是算全部图像的角点
                     for x, y in [np.int32(tr[-1]) for tr in self.tracks]:  # 跟踪的角点画圆
                         cv2.circle(mask, (x, y), 5, 0, -1)
 
-                    # Shi-Tomasi角点检测
-                    # p = cv2.goodFeaturesToTrack(frame_gray, mask=mask, **feature_params)  # 像素级别角点检测
-                    # if p is not None:
-                    #     for x, y in np.float32(p).reshape(-1, 2):
-                    #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
+                if self.frame_idx % self.iters == 0:
+                    v_t = self.v_sum / self.iters
+                    v_t = round(v_t, 6)
+                    print(v_t)
+                    self.v_sum = 0
 
-                    # SIFT检测
-                    # sift = cv2.xfeatures2d.SIFT_create()
-                    # p = sift.detect(frame_gray, None)
-                    # if p is not None:
-                    #     for keypoint in p:
-                    #         x = keypoint.pt[0]
-                    #         y = keypoint.pt[1]
-                    #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
+                # Shi-Tomasi角点检测
+                p = cv2.goodFeaturesToTrack(frame_gray, mask=mask, **feature_params)  # 像素级别角点检测
+                if p is not None:
+                    for x, y in np.float32(p).reshape(-1, 2):
+                        self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
 
-                    # SURF关键点检测
-                    surf = cv2.xfeatures2d.SURF_create()
-                    p = surf.detect(frame_gray, None)
-                    if p is not None:
-                        for keypoint in p:
-                            x = keypoint.pt[0]
-                            y = keypoint.pt[1]
-                            self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
+                # SIFT检测
+                # sift = cv2.xfeatures2d.SIFT_create()
+                # p = sift.detect(frame_gray, None)
+                # if p is not None:
+                #     for keypoint in p:
+                #         x = keypoint.pt[0]
+                #         y = keypoint.pt[1]
+                #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
 
-                    # ORB角点检测
-                    # orb = cv2.ORB_create()
-                    # p = orb.detect(frame_gray, None)
-                    # if p is not None:
-                    #     for keypoint in p:
-                    #         x = keypoint.pt[0]
-                    #         y = keypoint.pt[1]
-                    #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
+                # SURF关键点检测
+                # surf = cv2.xfeatures2d.SURF_create()
+                # p = surf.detect(frame_gray, None)
+                # if p is not None:
+                #     for keypoint in p:
+                #         x = keypoint.pt[0]
+                #         y = keypoint.pt[1]
+                #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
+
+                # ORB角点检测
+                # orb = cv2.ORB_create()
+                # p = orb.detect(frame_gray, None)
+                # if p is not None:
+                #     for keypoint in p:
+                #         x = keypoint.pt[0]
+                #         y = keypoint.pt[1]
+                #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
+
+                # FAST角点
+                # fast = cv2.FastFeatureDetector_create()
+                # p = fast.detect(frame_gray, None)
+                # if p is not None:
+                #     for keypoint in p:
+                #         x = keypoint.pt[0]
+                #         y = keypoint.pt[1]
+                #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
 
                 self.frame_idx += 1
                 self.prev_gray = frame_gray
-                cv2.imshow('lk_track', vis)
-                # out.write(vis)
+                self.prev_time = curr_time
 
-            ch = 0xFF & cv2.waitKey(50)
+                e2 = cv2.getTickCount()
+                time = (e2 - e1) / cv2.getTickFrequency()
+                imgText = cv2.putText(vis, "v:" + str(v_t), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+                # imgText = cv2.putText(imgText, "FPS:" + str(1 // time), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,
+                # 0, 255))
+                cv2.imshow('lk_track', imgText)
+                print("单帧处理时间:", round(time*1000, 4), "ms")
+                print("FPS:", 1 // time)
+                # out.write(imgText)
+
+            ch = 0xFF & cv2.waitKey(1)
             if ch == 27:  # 按esc退出
                 break
 
