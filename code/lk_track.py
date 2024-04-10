@@ -20,7 +20,7 @@ ESC - exit
 import numpy as np
 import cv2
 import math
-import matplotlib.pyplot as plt  # 添加matplotlib的导入
+import matplotlib.pyplot as plt
 
 # from common import anorm2, draw_str
 # from time import clock
@@ -29,9 +29,9 @@ lk_params = dict(winSize=(15, 15),
                  maxLevel=5,
                  criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
-feature_params = dict(maxCorners=50,
+feature_params = dict(maxCorners=40,
                       qualityLevel=0.6,
-                      minDistance=7,
+                      minDistance=5,
                       blockSize=5)
 
 kernel = np.array([[-1, -1, -1],
@@ -68,7 +68,7 @@ def output_choose_vedio(coor, frame):
 
 
 video_name = "15.mp4"
-video_src = "./test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
+video_src = "../../code/test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
 coor_x, coor_y, emptyImage = -1, -1, 0  # 初始值并无意义,只是先定义一下供后面的global赋值改变用于全局变量
 coor = np.array([[1, 1]])
 
@@ -90,7 +90,7 @@ print("视频选中区域的宽：%d" % Width_choose, '\n'"视频选中区域的
 class App:
     def __init__(self, video_src):  # 构造方法，初始化一些参数和视频路径
         self.track_len = 2
-        self.detect_interval = 6  # 过几帧检测一次角点
+        self.detect_interval = 4  # 过几帧检测一次角点
         self.tracks = []
         self.cam = cv2.VideoCapture(video_src)
         self.frame_idx = 0
@@ -98,11 +98,11 @@ class App:
         self.d_ave = 0
         self.v = 0
         self.v_sum = 0
-        self.iters = 120
+        self.iters = 110
         # 添加一个属性来存储每一帧的速度值
-        self.speeds = []  
+        self.speeds = []
         # 添加一个属性来存储对应的帧数
-        self.frames = []  
+        self.frames = []
 
     def run(self):  # 光流运行方法
         while True:
@@ -123,7 +123,7 @@ class App:
                 cv2.imshow("gray", frame_gray)
                 vis = output.copy()
 
-                if len(self.tracks) > 0:  # 检测到角点后进行光流跟踪n
+                if len(self.tracks) > 0:  # 检测到角点后进行光流跟踪
                     img0, img1 = self.prev_gray, frame_gray
                     p0 = np.float32([tr[-1] for tr in self.tracks]).reshape(-1, 1, 2)
                     p1, st, err = cv2.calcOpticalFlowPyrLK(img0, img1, p0, None,
@@ -145,8 +145,8 @@ class App:
                         cv2.circle(vis, (int(x), int(y)), 2, (0, 255, 0), -1)
                         # self.d_sum = self.d_sum + math.sqrt(math.pow(pre_x-x, 2) + math.pow(pre_y-y, 2))
                     self.tracks = new_tracks
-                    # cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False,
-                    #               (0, 255, 0))  # 以上一振角点为初始点，当前帧跟踪到的点为终点划线
+                    cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False,
+                                  (0, 255, 0))  # 以上一振角点为初始点，当前帧跟踪到的点为终点划线
                     if len(self.tracks) > 0:
                         self.d_ave = self.d_sum / len(self.tracks)
                     # print("d_ave:" + str(self.d_sum))
@@ -177,7 +177,7 @@ class App:
                 if self.frame_idx % self.iters == 0:
                     v_t = self.v_sum / self.iters
                     v_t = round(v_t, 6)
-                    print(v_t)
+                    print("速度:", v_t)
                     self.v_sum = 0
 
                 # Shi-Tomasi角点检测
@@ -239,7 +239,6 @@ class App:
             ch = 0xFF & cv2.waitKey(1)
             if ch == 27:  # 按esc退出
                 break
-
         self.draw_speed_curve()  # 当退出循环时绘制速度曲线
 
     def draw_speed_curve(self):
