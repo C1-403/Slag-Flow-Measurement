@@ -68,7 +68,7 @@ def output_choose_vedio(coor, frame):
 
 
 video_name = "15.mp4"
-video_src = "../../code/test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
+video_src = "../code/test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
 coor_x, coor_y, emptyImage = -1, -1, 0  # 初始值并无意义,只是先定义一下供后面的global赋值改变用于全局变量
 coor = np.array([[1, 1]])
 
