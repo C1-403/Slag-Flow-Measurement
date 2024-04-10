@@ -20,6 +20,7 @@ ESC - exit
 import numpy as np
 import cv2
 import math
+import matplotlib.pyplot as plt  # 添加matplotlib的导入
 
 # from common import anorm2, draw_str
 # from time import clock
@@ -67,7 +68,7 @@ def output_choose_vedio(coor, frame):
 
 
 video_name = "15.mp4"
-video_src = "../../code/test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
+video_src = "./test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
 coor_x, coor_y, emptyImage = -1, -1, 0  # 初始值并无意义,只是先定义一下供后面的global赋值改变用于全局变量
 coor = np.array([[1, 1]])
 
@@ -98,6 +99,10 @@ class App:
         self.v = 0
         self.v_sum = 0
         self.iters = 120
+        # 添加一个属性来存储每一帧的速度值
+        self.speeds = []  
+        # 添加一个属性来存储对应的帧数
+        self.frames = []  
 
     def run(self):  # 光流运行方法
         while True:
@@ -152,6 +157,11 @@ class App:
                             self.d_sum = self.d_sum + dis
                         self.d_ave = self.d_sum / len(self.tracks)
                     self.v = self.d_ave / (curr_time - self.prev_time)
+
+                    # Draw velocity
+                    self.speeds.append(self.v)  # 记录速度
+                    self.frames.append(self.frame_idx)  # 记录帧数
+
                     self.v_sum += self.v
                     # print(self.tracks)
                     # print(self.d_ave)
@@ -229,6 +239,17 @@ class App:
             ch = 0xFF & cv2.waitKey(1)
             if ch == 27:  # 按esc退出
                 break
+
+        self.draw_speed_curve()  # 当退出循环时绘制速度曲线
+
+    def draw_speed_curve(self):
+        plt.figure()
+        plt.plot(self.frames, self.speeds, label='Speed over frames')
+        plt.xlabel('Frame number')
+        plt.ylabel('Speed')
+        plt.title('Speed Change Over Frames')
+        plt.legend()
+        plt.show()
 
 
 def main():
