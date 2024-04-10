@@ -20,7 +20,7 @@ ESC - exit
 import numpy as np
 import cv2
 import math
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # 添加matplotlib的导入
 
 # from common import anorm2, draw_str
 # from time import clock
@@ -68,7 +68,7 @@ def output_choose_vedio(coor, frame):
 
 
 video_name = "15.mp4"
-video_src = "../code/test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
+video_src = "./test_videos/" + video_name  # Todo:只需要修改成自己的视频路径即可进行测试
 coor_x, coor_y, emptyImage = -1, -1, 0  # 初始值并无意义,只是先定义一下供后面的global赋值改变用于全局变量
 coor = np.array([[1, 1]])
 
@@ -84,7 +84,7 @@ Height_choose = coor[2, 1] - coor[1, 1]  # 选中区域的高
 print("视频选中区域的宽：%d" % Width_choose, '\n'"视频选中区域的高：%d" % Height_choose)
 
 
-# out = cv2.VideoWriter("output/" + video_name, fourcc, 10, (Width_choose, Height_choose))
+# out = cv2.VideoWriter("output/videos" + video_name, fourcc, 10, (Width_choose, Height_choose))
 
 
 class App:
@@ -100,9 +100,13 @@ class App:
         self.v_sum = 0
         self.iters = 110
         # 添加一个属性来存储每一帧的速度值
-        self.speeds = []
+        self.speeds = []  
         # 添加一个属性来存储对应的帧数
-        self.frames = []
+        self.frames = []  
+        # 单帧处理时间
+        self.operate_time = []
+        # 当前帧率
+        self.fps = []
 
     def run(self):  # 光流运行方法
         while True:
@@ -123,7 +127,7 @@ class App:
                 cv2.imshow("gray", frame_gray)
                 vis = output.copy()
 
-                if len(self.tracks) > 0:  # 检测到角点后进行光流跟踪
+                if len(self.tracks) > 0:  # 检测到角点后进行光流跟踪n
                     img0, img1 = self.prev_gray, frame_gray
                     p0 = np.float32([tr[-1] for tr in self.tracks]).reshape(-1, 1, 2)
                     p1, st, err = cv2.calcOpticalFlowPyrLK(img0, img1, p0, None,
@@ -145,8 +149,8 @@ class App:
                         cv2.circle(vis, (int(x), int(y)), 2, (0, 255, 0), -1)
                         # self.d_sum = self.d_sum + math.sqrt(math.pow(pre_x-x, 2) + math.pow(pre_y-y, 2))
                     self.tracks = new_tracks
-                    cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False,
-                                  (0, 255, 0))  # 以上一振角点为初始点，当前帧跟踪到的点为终点划线
+                    # cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False,
+                    #               (0, 255, 0))  # 以上一振角点为初始点，当前帧跟踪到的点为终点划线
                     if len(self.tracks) > 0:
                         self.d_ave = self.d_sum / len(self.tracks)
                     # print("d_ave:" + str(self.d_sum))
@@ -160,6 +164,7 @@ class App:
 
                     # Draw velocity
                     self.speeds.append(self.v)  # 记录速度
+
                     self.frames.append(self.frame_idx)  # 记录帧数
 
                     self.v_sum += self.v
@@ -177,7 +182,7 @@ class App:
                 if self.frame_idx % self.iters == 0:
                     v_t = self.v_sum / self.iters
                     v_t = round(v_t, 6)
-                    print("速度:", v_t)
+                    print(v_t)
                     self.v_sum = 0
 
                 # Shi-Tomasi角点检测
@@ -222,33 +227,54 @@ class App:
                 #         y = keypoint.pt[1]
                 #         self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
 
-                self.frame_idx += 1
-                self.prev_gray = frame_gray
-                self.prev_time = curr_time
-
                 e2 = cv2.getTickCount()
                 time = (e2 - e1) / cv2.getTickFrequency()
                 imgText = cv2.putText(vis, "v:" + str(v_t), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
                 # imgText = cv2.putText(imgText, "FPS:" + str(1 // time), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,
                 # 0, 255))
                 cv2.imshow('lk_track', imgText)
-                print("单帧处理时间:", round(time*1000, 4), "ms")
-                print("FPS:", 1 // time)
-                # out.write(imgText)
+                if self.frame_idx != 0:
+                    print("单帧处理时间:", round(time*1000, 4), "ms")
+                    self.operate_time.append(round(time*1000, 4))
+                    print("FPS:", 1 // time)
+                    self.fps.append(1 // time)
+                    # out.write(imgText)
+
+                self.frame_idx += 1
+                self.prev_gray = frame_gray
+                self.prev_time = curr_time
+                
 
             ch = 0xFF & cv2.waitKey(1)
             if ch == 27:  # 按esc退出
                 break
-        self.draw_speed_curve()  # 当退出循环时绘制速度曲线
 
-    def draw_speed_curve(self):
-        plt.figure()
+        self.draw_curve()
+
+    def draw_curve(self):
+        plt.figure(1)
         plt.plot(self.frames, self.speeds, label='Speed over frames')
         plt.xlabel('Frame number')
         plt.ylabel('Speed')
         plt.title('Speed Change Over Frames')
         plt.legend()
-        plt.show()
+        plt.savefig('./output/pictures/speed_curve.jpg')
+
+        plt.figure(2)
+        plt.plot(self.frames, self.operate_time, label='Operate time over frames')
+        plt.xlabel('Frame number')
+        plt.ylabel('Operate time')
+        plt.title('Operate time Over Frames')
+        plt.savefig('./output/pictures/operate_time_curve.jpg')
+
+        plt.figure(3)
+        plt.plot(self.frames, self.fps, label='FPS over frames')
+        plt.xlabel('Frame number')
+        plt.ylabel('FPS')
+        plt.title('FPS Change Over Frames')
+        plt.savefig('./output/pictures/fps_curve.jpg')
+
+        
 
 
 def main():
