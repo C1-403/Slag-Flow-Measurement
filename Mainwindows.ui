@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>mainWindow</class>
+ <widget class="QMainWindow" name="mainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1672</width>
+    <height>1024</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>熔渣测速</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="crosssectwidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>1120</x>
+      <y>70</y>
+      <width>531</width>
+      <height>924</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="crosssect_CloseCam">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>100</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>关闭相机</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="crosssec_continuous">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>20</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>开始采集</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="crosssect_OpenCam">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>20</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>打开相机</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="crosssect_start">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>100</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>开始截面积计算</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="crosssec_Cam">
+     <property name="geometry">
+      <rect>
+       <x>19</x>
+       <y>180</y>
+       <width>490</width>
+       <height>367</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="flowratewidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>70</y>
+      <width>1050</width>
+      <height>924</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="flowrate_continuous">
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>100</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>连续采集</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flowrate_choose_roi">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>700</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>框选测速范围</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flowrate_OpenCam">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>20</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>打开相机</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="flowrate_flowrateCam">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>170</y>
+       <width>581</width>
+       <height>511</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flowrate_single">
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>20</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>单帧采集</string>
+     </property>
+    </widget>
+    <widget class="QTextBrowser" name="flowrate_Info">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>630</x>
+       <y>20</y>
+       <width>411</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flowrate_xFeat_start">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>700</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>开始深度学习测速</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="flowrate_Cam_Seg">
+     <property name="geometry">
+      <rect>
+       <x>630</x>
+       <y>240</y>
+       <width>411</width>
+       <height>301</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flowrate_Trad_start">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>700</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>开始传统测速</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flowrate_CloseCam">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>100</y>
+       <width>160</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>关闭相机</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1672</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

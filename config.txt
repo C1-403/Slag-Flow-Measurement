@@ -1,0 +1,11 @@
+# 数据和图像路径
+CALIB_DATA_PATH = '20250517'
+CALIB_IMAGE_FILENAMES = ['1.png', '2.png', '3.png']
+
+# 【重要】Python索引 (MATLAB中的索引值减1)
+LASER_IMAGE_INDICES = [45, 46, 47]
+
+# --- 输入/输出文件名 ---
+CAMERA_PARAMS_MAT_FILE = 'camera_params_for_python.mat'
+PLANE_PARAMS_OUTPUT_FILE = 'planeParams_vertical_goucao2'
+
