@@ -1,0 +1,15 @@
+flowrate_cam_sn=KE0230050098
+flowrate_cam_ExposureMode=0
+flowrate_cam_AutoExposureTimeMax=10000
+flowrate_cam_GainAuto=1
+flowrate_cam_BalanceWhiteAuto=1
+flowrate_cam_ExposureTime=10000
+TRIGGER_DELAY_US=7
+crosssect_cam_sn=KE0230050099
+crosssect_cam_ExposureMode=0
+crosssect_cam_ExposureTime=10000
+crosssect_cam_green=15
+crosssect_cam_red=1
+crosssect_cam_blue=1
+
+
