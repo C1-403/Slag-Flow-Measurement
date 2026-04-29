@@ -5,11 +5,10 @@ import cv2
 import sys
 from scipy.spatial.distance import cdist
 
-# 从我们刚刚创建的文件中导入新的ROI选择函数
 from matplotlib_roi_selector import select_roi_with_matplotlib
 
 
-def extract_subject(image_data: str, camera_params: dict, roi_rect: tuple = None):
+def extract_subject(image_data: np.ndarray, camera_params: dict, roi_rect: tuple = None):
     """
     通过交互式或预设ROI和Steger算法从图像中提取激光中心线。
     【完美版本】:
@@ -89,11 +88,42 @@ def extract_subject(image_data: str, camera_params: dict, roi_rect: tuple = None
     #     print("错误: 在指定的ROI内未能提取到任何激光点。")
     #     return None, used_roi
 
+    print("正在提取激光线...")
+
+    blurred = cv2.GaussianBlur(cropped_img, (13, 13), 0)
+
+    # 顶帽变换：剥离中间连片的白色散光区域
+    # 核大小需大于主激光线的实际像素宽度，这样能只保留线条，抹除大片高亮背景
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 30))
+    tophat = cv2.morphologyEx(blurred, cv2.MORPH_TOPHAT, kernel)
+    close_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    tophat = cv2.morphologyEx(tophat, cv2.MORPH_CLOSE, close_kernel)
+    # ==================== 多图对比调试可视化 ====================
+    if 0:
+        # 将三张图水平拼接：左边是原图，中间是模糊图，右边是Top-Hat图
+        debug_view = np.hstack([cropped_img, blurred, tophat])
+
+        window_title = "Debug: Original (Left) | Blurred (Middle) | Top-Hat (Right)"
+        cv2.namedWindow(window_title, cv2.WINDOW_NORMAL)
+        # 根据三张图的宽度调整窗口大小，防止溢出屏幕 (最高限制900，最宽限制1800)
+        cv2.resizeWindow(window_title, min(1800, w_roi * 3), min(900, h_roi))
+
+        cv2.imshow(window_title, debug_view)
+        print("\n【调试模式】已弹出 3 图对比窗口。")
+        print("  - [左图] 原图: 观察原始噪声和中间的光晕。")
+        print("  - [中图] 模糊: 观察孤立噪点是否被平滑。")
+        print("  - [右图] Top-Hat: 观察中间的白底光晕是否变黑，主线是否依旧明亮。")
+        print(" -> 按任意键关闭窗口并继续执行提取逻辑...")
+
+        cv2.waitKey(0)
+        cv2.destroyWindow(window_title)
+    # ==========================================================
+
     # 逐列寻找最亮点
     uv_subpixel = []
     h_crop, w_crop = cropped_img.shape
     for col in range(w_crop):
-        col_data = cropped_img[:, col]
+        col_data = tophat[:, col]
         max_val = np.max(col_data)
         if max_val < 10:  # 阈值过滤，避免噪声
             continue
@@ -104,9 +134,12 @@ def extract_subject(image_data: str, camera_params: dict, roi_rect: tuple = None
     if not uv_subpixel:
         print("错误: 在指定的ROI内未能提取到任何激光点。")
         return None, used_roi
+
+
+
     # 4. 使用KNN去噪
     uv_points = np.array(uv_subpixel)
-    k, distance_threshold_factor = 5, 1.1
+    k, distance_threshold_factor = 7, 1.2
     num_points = uv_points.shape[0]
     if num_points <= k:
         filtered_points = uv_points
@@ -124,3 +157,5 @@ def extract_subject(image_data: str, camera_params: dict, roi_rect: tuple = None
     # 但在一个自动化的流程中，通常选择省略这一步。
 
     return filtered_points, used_roi
+
+

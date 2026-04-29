@@ -11,7 +11,7 @@ import numpy as np
 import sys
 import os
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
 
@@ -53,7 +53,7 @@ def process_full_pipeline(image_data: np.ndarray, camera_params: dict, laser_pla
 
     return smoothed_contour, used_roi
 
-def save_lower_countour(image_data: np.ndarray,SAVE_ROI=False):
+def save_lower_countour(image_data: np.ndarray,SAVE_ROI=False, roi_rect=None):
     LOWER_CONTOUR_CACHE_FILE = 'lower_contour_cache.npy'  # 设置即将保存的下轮廓文件名
     config_data = load_config_from_file('config.txt')
     # 检查配置是否加载成功
@@ -69,7 +69,7 @@ def save_lower_countour(image_data: np.ndarray,SAVE_ROI=False):
     except Exception as e:
         print(f"激光平面参数加载失败: {e}")
     #调用核心提取-重建-重投影函数
-    lower_contour, _ = process_full_pipeline(image_data, camera_parameters,plane_params,roi_rect=None,SAVE_ROI=SAVE_ROI)
+    lower_contour, _ = process_full_pipeline(image_data, camera_parameters,plane_params,roi_rect=roi_rect,SAVE_ROI=SAVE_ROI)
     if lower_contour is not None:
         np.save(LOWER_CONTOUR_CACHE_FILE, lower_contour)
         print(f"下轮廓处理完毕，并已缓存到 '{LOWER_CONTOUR_CACHE_FILE}'")
@@ -110,7 +110,7 @@ def get_area_from_upper_image(upper_image_data: np.ndarray, fixed_lower_contour:
     # 4. 计算面积
     area, x_fill, y_upper_fill, y_lower_fill = calculate_area_between_contours(smoothed_upper, fixed_lower_contour)
     area *= -1
-    area /= 10000
+    area /= 1000000
     print("\n" + "=" * 70)
     print(f"【计算结果】 截面面积: {-1 * area:.4f} (m^2)")
     print("=" * 70)

@@ -49,7 +49,7 @@ def Kar(measurement, prediction, alpha=0.5):
 
 
 # 读取历史数据
-data = pd.read_csv('./xfeat_speed.csv')
+data = pd.read_csv('./result/realtime_flowrate.csv')
 data = data["Speed(m/s)"]
 # ARIMA预测
 start = time.time()

@@ -7,7 +7,8 @@ import numpy as np
 # 预先设置好兼容的后端，以增加稳定性
 import matplotlib
 
-matplotlib.use('TkAgg')
+matplotlib.use("Qt5Agg")
+import matplotlib.pyplot as plt
 
 
 class ROISelector:

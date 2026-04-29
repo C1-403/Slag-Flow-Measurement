@@ -15,124 +15,229 @@ from PyQt5.QtWidgets import *
 class Ui_mainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("熔渣测速")
         mainWindow.resize(1672, 1024)
+        mainWindow.setMinimumSize(1400, 900)
+
         self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.crosssectwidget = QtWidgets.QWidget(self.centralwidget)
-        self.crosssectwidget.setGeometry(QtCore.QRect(1120, 70, 531, 924))
-        self.crosssectwidget.setObjectName("crosssectwidget")
-        self.crosssect_CloseCam = QtWidgets.QPushButton(self.crosssectwidget)
-        self.crosssect_CloseCam.setGeometry(QtCore.QRect(60, 100, 160, 30))
-        self.crosssect_CloseCam.setObjectName("crosssect_CloseCam")
-        self.crosssect_continuous = QtWidgets.QPushButton(self.crosssectwidget)
-        self.crosssect_continuous.setGeometry(QtCore.QRect(300, 20, 160, 30))
-        self.crosssect_continuous.setObjectName("crosssect_continuous")
-        self.return_ui = QtWidgets.QPushButton(self.centralwidget)
-        self.return_ui.setGeometry(QtCore.QRect(20, 20, 60, 40))
-        self.return_ui.setObjectName("return_ui")
-        self.crosssect_OpenCam = QtWidgets.QPushButton(self.crosssectwidget)
-        self.crosssect_OpenCam.setGeometry(QtCore.QRect(60, 20, 160, 30))
-        self.crosssect_OpenCam.setObjectName("crosssect_OpenCam")
-        self.crosssect_start = QtWidgets.QPushButton(self.crosssectwidget)
-        self.crosssect_start.setGeometry(QtCore.QRect(300, 100, 160, 30))
-        self.crosssect_start.setObjectName("crosssect_start")
-        self.bottom_face_start = QtWidgets.QPushButton(self.crosssectwidget)
-        self.bottom_face_start.setGeometry(QtCore.QRect(300, 140, 160, 30))
-        self.bottom_face_start.setObjectName("bottom_face_start")
-        self.crosssect_Cam = QtWidgets.QLabel(self.crosssectwidget)
-        self.crosssect_Cam.setGeometry(QtCore.QRect(19, 180, 490, 367))
-        self.crosssect_Cam.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self.crosssect_Cam.setText("")
-        self.crosssect_Cam.setObjectName("crosssect_Cam")
-        self.crosssect_plot_view = QChartView(self.crosssectwidget)
-        self.crosssect_plot_view.setGeometry(QtCore.QRect(20, 560, 490, 320))
-        self.crosssect_plot_view.setObjectName("plot_view")
-        self.flowratewidget = QtWidgets.QWidget(self.centralwidget)
-        self.flowratewidget.setGeometry(QtCore.QRect(40, 70, 1050, 924))
-        self.flowratewidget.setObjectName("flowratewidget")
-        self.flowrate_continuous = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_continuous.setGeometry(QtCore.QRect(380, 100, 160, 30))
-        self.flowrate_continuous.setObjectName("flowrate_continuous")
-        self.crosssectcamera_param_control = QtWidgets.QPushButton(self.flowratewidget)
-        self.crosssectcamera_param_control.setGeometry(QtCore.QRect(880, 200, 160, 30))
-        self.crosssectcamera_param_control.setObjectName("crosssectcamera_param_control")
-        self.flowratecamera_param_control = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowratecamera_param_control.setGeometry(QtCore.QRect(630, 200, 160, 30))
-        self.flowratecamera_param_control.setObjectName("flowratecamera_param_control")
-        self.flowrate_choose_roi = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_choose_roi.setGeometry(QtCore.QRect(20, 700, 160, 30))
-        self.flowrate_choose_roi.setObjectName("flowrate_choose_roi")
-        self.flowrate_OpenCam = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_OpenCam.setGeometry(QtCore.QRect(100, 20, 160, 30))
-        self.flowrate_OpenCam.setObjectName("flowrate_OpenCam")
-        self.flowrate_Cam = QtWidgets.QLabel(self.flowratewidget)
-        self.flowrate_Cam.setGeometry(QtCore.QRect(20, 170, 581, 511))
-        self.flowrate_Cam.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self.flowrate_Cam.setText("")
-        self.flowrate_Cam.setObjectName("flowrate_Cam")
-        self.flowrate_single = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_single.setGeometry(QtCore.QRect(380, 20, 160, 30))
-        self.flowrate_single.setObjectName("flowrate_single")
-        self.flowInfo = QtWidgets.QTextBrowser(self.flowratewidget)
-        self.flowInfo.setEnabled(True)
-        self.flowInfo.setGeometry(QtCore.QRect(630, 0, 411, 91))
+        mainWindow.setCentralWidget(self.centralwidget)
+
+        # ===== 总体布局 =====
+        self.mainLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.mainLayout.setContentsMargins(10, 10, 10, 10)
+        self.mainLayout.setSpacing(10)
+
+        # ===== 顶部返回 =====
+        self.topBarLayout = QtWidgets.QHBoxLayout()
+        self.return_ui = QtWidgets.QPushButton("返回")
+        self.return_ui.setMinimumSize(60, 36)
+        self.return_ui.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.topBarLayout.addWidget(self.return_ui, alignment=QtCore.Qt.AlignLeft)
+        self.topBarLayout.addStretch()
+        self.mainLayout.addLayout(self.topBarLayout)
+
+        # ===== 主内容左右布局 =====
+        self.contentLayout = QtWidgets.QHBoxLayout()
+        self.contentLayout.setSpacing(10)
+        self.mainLayout.addLayout(self.contentLayout)
+
+        # =========================================================
+        # 左侧：流速区域
+        # =========================================================
+        self.flowratewidget = QtWidgets.QWidget()
+        self.flowratewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.contentLayout.addWidget(self.flowratewidget, 2)
+
+        self.flowMainLayout = QtWidgets.QVBoxLayout(self.flowratewidget)
+        self.flowMainLayout.setContentsMargins(0, 0, 0, 0)
+        self.flowMainLayout.setSpacing(10)
+
+        # ---------- 第1行：参数显示框 + 参数设置 ----------
+        self.flowTopInfoLayout = QtWidgets.QHBoxLayout()
+        self.flowTopInfoLayout.setSpacing(10)
+
+        self.flowInfo = QtWidgets.QTextBrowser()
+        self.flowInfo.setMinimumHeight(110)
+        self.flowInfo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         font = QtGui.QFont()
         font.setPointSize(11)
         self.flowInfo.setFont(font)
-        self.flowInfo.setObjectName("flowInfo")
-        self.crossInfo = QtWidgets.QTextBrowser(self.flowratewidget)
-        self.crossInfo.setEnabled(True)
-        self.crossInfo.setGeometry(QtCore.QRect(630, 100, 411, 91))
-        font = QtGui.QFont()
-        font.setPointSize(11)
+
+        self.crossInfo = QtWidgets.QTextBrowser()
+        self.crossInfo.setMinimumHeight(110)
+        self.crossInfo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.crossInfo.setFont(font)
-        self.crossInfo.setObjectName("crossInfo")
-        self.flowrate_xFeat_start = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_xFeat_start.setGeometry(QtCore.QRect(440, 700, 160, 30))
-        self.flowrate_xFeat_start.setObjectName("flowrate_xFeat_start")
-        self.flowrate_Cam_Seg = QtWidgets.QLabel(self.flowratewidget)
-        self.flowrate_Cam_Seg.setGeometry(QtCore.QRect(630, 240, 411, 301))
+
+        self.paramBtnLayout = QtWidgets.QVBoxLayout()
+        self.paramBtnLayout.setSpacing(10)
+
+        self.flowratecamera_param_control = QtWidgets.QPushButton("流速硬件参数设置")
+        self.flowratecamera_param_control.setMinimumHeight(36)
+        self.flowratecamera_param_control.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        self.crosssectcamera_param_control = QtWidgets.QPushButton("截面积硬件参数设置")
+        self.crosssectcamera_param_control.setMinimumHeight(36)
+        self.crosssectcamera_param_control.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        self.paramBtnLayout.addWidget(self.flowratecamera_param_control)
+        self.paramBtnLayout.addWidget(self.crosssectcamera_param_control)
+
+        self.flowTopInfoLayout.addWidget(self.flowInfo, 3)
+        self.flowTopInfoLayout.addWidget(self.crossInfo, 3)
+        self.flowTopInfoLayout.addLayout(self.paramBtnLayout, 2)
+
+        self.flowMainLayout.addLayout(self.flowTopInfoLayout)
+
+        # ---------- 第2行：打开相机 / 关闭相机 ----------
+        self.flowCamRow = QtWidgets.QHBoxLayout()
+        self.flowCamRow.setSpacing(10)
+
+        self.flowrate_OpenCam = QtWidgets.QPushButton("打开相机")
+        self.flowrate_CloseCam = QtWidgets.QPushButton("关闭相机")
+
+        for btn in [self.flowrate_OpenCam, self.flowrate_CloseCam]:
+            btn.setMinimumHeight(36)
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            self.flowCamRow.addWidget(btn)
+
+        self.flowMainLayout.addLayout(self.flowCamRow)
+
+        # ---------- 第3行：采集 + 测速按钮 ----------
+        self.flowActionRow = QtWidgets.QHBoxLayout()
+        self.flowActionRow.setSpacing(10)
+
+        self.flowrate_single = QtWidgets.QPushButton("单帧采集")
+        self.flowrate_continuous = QtWidgets.QPushButton("连续采集")
+        self.flowrate_choose_roi = QtWidgets.QPushButton("框选测速范围")
+        self.flowrate_Trad_start = QtWidgets.QPushButton("开始传统测速")
+        self.flowrate_xFeat_start = QtWidgets.QPushButton("开始深度学习测速")
+
+        for btn in [
+            self.flowrate_single,
+            self.flowrate_continuous,
+            self.flowrate_choose_roi,
+            self.flowrate_Trad_start,
+            self.flowrate_xFeat_start
+        ]:
+            btn.setMinimumHeight(36)
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            self.flowActionRow.addWidget(btn)
+
+        self.flowMainLayout.addLayout(self.flowActionRow)
+
+        # ---------- 第4行：图像显示 ----------
+        self.flowImageLayout = QtWidgets.QHBoxLayout()
+        self.flowImageLayout.setSpacing(8)
+
+        self.flowrate_Cam = QtWidgets.QLabel()
+        self.flowrate_Cam.setStyleSheet("background-color: rgb(0, 0, 0);")
+        self.flowrate_Cam.setAlignment(QtCore.Qt.AlignCenter)
+        self.flowrate_Cam.setMinimumSize(500, 420)
+        self.flowrate_Cam.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.flowrate_Cam_Seg = QtWidgets.QLabel()
         self.flowrate_Cam_Seg.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self.flowrate_Cam_Seg.setText("")
-        self.flowrate_Cam_Seg.setObjectName("flowrate_Cam_Seg")
-        self.flowrate_Trad_start = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_Trad_start.setGeometry(QtCore.QRect(230, 700, 160, 30))
-        self.flowrate_Trad_start.setObjectName("flowrate_Trad_start")
-        self.flowrate_CloseCam = QtWidgets.QPushButton(self.flowratewidget)
-        self.flowrate_CloseCam.setGeometry(QtCore.QRect(100, 100, 160, 30))
-        self.flowrate_CloseCam.setObjectName("flowrate_CloseCam")
-        self.flowrate_plot_view = QChartView(self.flowratewidget)
-        self.flowrate_plot_view.setGeometry(QtCore.QRect(620, 560, 411, 320))
-        self.flowrate_plot_view.setObjectName("plot_view")
-        mainWindow.setCentralWidget(self.centralwidget)
+        self.flowrate_Cam_Seg.setAlignment(QtCore.Qt.AlignCenter)
+        self.flowrate_Cam_Seg.setMinimumSize(320, 420)
+        self.flowrate_Cam_Seg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.flowImageLayout.addWidget(self.flowrate_Cam, 3)
+        self.flowImageLayout.addWidget(self.flowrate_Cam_Seg, 2)
+
+        self.flowMainLayout.addLayout(self.flowImageLayout, 5)
+
+        # ---------- 第5行：底部曲线（高度加大） ----------
+        self.flowrate_plot_view = QChartView()
+        self.flowrate_plot_view.setObjectName("flowrate_plot_view")
+        self.flowrate_plot_view.setMinimumHeight(520)
+        self.flowrate_plot_view.setMaximumWidth(720)
+        self.flowrate_plot_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.flowMainLayout.addWidget(self.flowrate_plot_view, 3)
+
+        # =========================================================
+        # 右侧：截面积区域
+        # =========================================================
+        self.crosssectwidget = QtWidgets.QWidget()
+        self.crosssectwidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.contentLayout.addWidget(self.crosssectwidget, 1)
+
+        self.crossMainLayout = QtWidgets.QVBoxLayout(self.crosssectwidget)
+        self.crossMainLayout.setContentsMargins(0, 0, 0, 0)
+        self.crossMainLayout.setSpacing(10)
+
+        # ---------- 第1行：打开相机 / 关闭相机 ----------
+        self.crossCamRow = QtWidgets.QHBoxLayout()
+        self.crossCamRow.setSpacing(10)
+
+        self.crosssect_OpenCam = QtWidgets.QPushButton("打开相机")
+        self.crosssect_CloseCam = QtWidgets.QPushButton("关闭相机")
+
+        for btn in [self.crosssect_OpenCam, self.crosssect_CloseCam]:
+            btn.setMinimumHeight(36)
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            self.crossCamRow.addWidget(btn)
+
+        self.crossMainLayout.addLayout(self.crossCamRow)
+
+        # ---------- 第2行：采集 + 计算 ----------
+        self.crossActionRow = QtWidgets.QHBoxLayout()
+        self.crossActionRow.setSpacing(10)
+
+        self.crosssect_continuous = QtWidgets.QPushButton("开始采集")
+        self.crosssect_start = QtWidgets.QPushButton("开始截面积计算")
+        self.bottom_face_start = QtWidgets.QPushButton("开始下底面面积计算")
+
+        for btn in [self.crosssect_continuous, self.crosssect_start, self.bottom_face_start]:
+            btn.setMinimumHeight(36)
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            self.crossActionRow.addWidget(btn)
+
+        self.crossMainLayout.addLayout(self.crossActionRow)
+
+        # ---------- 第3行：相机画面 ----------
+        self.crosssect_Cam = QtWidgets.QLabel()
+        self.crosssect_Cam.setStyleSheet("background-color: rgb(0, 0, 0);")
+        self.crosssect_Cam.setAlignment(QtCore.Qt.AlignCenter)
+        self.crosssect_Cam.setMinimumSize(360, 460)
+        self.crosssect_Cam.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.crossMainLayout.addWidget(self.crosssect_Cam, 5)
+
+        # ---------- 第4行：底部曲线（高度加大） ----------
+        self.crosssect_plot_view = QChartView()
+        self.crosssect_plot_view.setObjectName("crosssect_plot_view")
+        self.crosssect_plot_view.setMinimumHeight(520)
+        self.crosssect_plot_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.crossMainLayout.addWidget(self.crosssect_plot_view, 3)
+
+        # menubar / statusbar
         self.menubar = QtWidgets.QMenuBar(mainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1672, 26))
-        self.menubar.setObjectName("menubar")
         mainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(mainWindow)
-        self.statusbar.setObjectName("statusbar")
         mainWindow.setStatusBar(self.statusbar)
+        # ===== 小按钮样式标记 =====
+        self.flowrate_OpenCam.setObjectName("smallBtn")
+        self.flowrate_CloseCam.setObjectName("smallBtn")
+        self.flowrate_single.setObjectName("smallBtn")
+        self.flowrate_continuous.setObjectName("smallBtn")
+        self.flowrate_choose_roi.setObjectName("smallBtn")
+        self.flowrate_Trad_start.setObjectName("smallBtn")
+        self.flowrate_xFeat_start.setObjectName("smallBtn")
 
+        self.crosssect_OpenCam.setObjectName("smallBtn")
+        self.crosssect_CloseCam.setObjectName("smallBtn")
+        self.crosssect_continuous.setObjectName("smallBtn")
+        self.crosssect_start.setObjectName("smallBtn")
+        self.bottom_face_start.setObjectName("smallBtn")
+
+        self.return_ui.setObjectName("smallBtn")
+        self.flowratecamera_param_control.setObjectName("smallBtn")
+        self.crosssectcamera_param_control.setObjectName("smallBtn")
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("mainWindow", "mainWindow"))
-        self.crosssect_CloseCam.setText(_translate("mainWindow", "关闭相机"))
-        self.crosssect_continuous.setText(_translate("mainWindow", "开始采集"))
-        self.crosssect_OpenCam.setText(_translate("mainWindow", "打开相机"))
-        self.crosssect_start.setText(_translate("mainWindow", "开始截面积计算"))
-        self.bottom_face_start.setText(_translate("mainWindow", "开始下底面面积计算"))
-        self.flowrate_continuous.setText(_translate("mainWindow", "连续采集"))
-        self.flowrate_choose_roi.setText(_translate("mainWindow", "框选测速范围"))
-        self.flowrate_OpenCam.setText(_translate("mainWindow", "打开相机"))
-        self.flowrate_single.setText(_translate("mainWindow", "单帧采集"))
-        self.flowratecamera_param_control.setText(_translate("mainWindow", "流速硬件参数设置"))
-        self.crosssectcamera_param_control.setText(_translate("mainWindow", "截面积硬件参数设置"))
-        self.flowrate_xFeat_start.setText(_translate("mainWindow", "开始深度学习测速"))
-        self.flowrate_Trad_start.setText(_translate("mainWindow", "开始传统测速"))
-        self.flowrate_CloseCam.setText(_translate("mainWindow", "关闭相机"))
-        self.return_ui.setText(_translate("mainWindow", "返回"))
